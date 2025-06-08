@@ -24,16 +24,38 @@ export const UserProfileService = {
    * @returns {Promise<UserProfile>} 返回一个 Promise，解析为新创建的用户资料对象。
    * @throws {Error} 如果创建用户资料时发生错误，则抛出错误。
    */
-  async createProfile(userProfile: Omit<UserProfile, 'user_id'>): Promise<UserProfile | null> {
-    const supabase = createClient()
-    const { data, error } = await supabase.from('user_profiles').insert([userProfile]);
-    if (error) {
-      return null;
+  async createProfile(userProfile: Omit<UserProfile, 'user_id'>): Promise<UserProfile> {
+    try {
+      const supabase = createClient();
+      
+      // 验证必填字段
+      if (!userProfile.username?.trim()) {
+        throw new Error('用户名不能为空');
+      }
+
+      // 检查用户名是否已存在
+      const existingProfile = await this.fetchProfileByUsername(userProfile.username);
+      if (existingProfile) {
+        throw new Error('该用户名已被使用');
+      }
+
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .insert([userProfile])
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`创建用户资料失败: ${error.message}`);
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`创建用户资料时发生错误: ${error.message}`);
+      }
+      throw new Error('创建用户资料时发生未知错误');
     }
-    if(data){
-        return data[0];
-    }
-    return null;  // 返回新插入的用户资料
   },
   /**
    * 根据用户名更新现有的用户资料。
@@ -42,19 +64,54 @@ export const UserProfileService = {
    * @returns {Promise<UserProfile>} 返回一个 Promise，解析为更新后的用户资料对象。
    * @throws {Error} 如果更新用户资料时发生错误，则抛出错误。
    */
-  async updateProfile(username: string, updates: Partial<Omit<UserProfile, 'user_id'>>): Promise<UserProfile | null> {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .update(updates)
-      .eq('username', username);
-    if (error) {
-      throw new Error(`更新资料时发生错误: ${error.message}`);
+  async updateProfile(
+    username: string, 
+    updates: Partial<Omit<UserProfile, 'user_id'>>
+  ): Promise<UserProfile> {
+    try {
+      const supabase = createClient();
+
+      // 验证输入参数
+      if (!username?.trim()) {
+        throw new Error('用户名不能为空');
+      }
+
+      if (Object.keys(updates).length === 0) {
+        throw new Error('没有提供要更新的字段');
+      }
+
+      // 检查用户是否存在
+      const existingProfile = await this.fetchProfileByUsername(username);
+      if (!existingProfile) {
+        throw new Error('要更新的用户资料不存在');
+      }
+
+      // 如果更新包含用户名，检查新用户名是否已被使用
+      if (updates.username && updates.username !== username) {
+        const usernameExists = await this.fetchProfileByUsername(updates.username);
+        if (usernameExists) {
+          throw new Error('新用户名已被使用');
+        }
+      }
+
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .update(updates)
+        .eq('username', username)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`更新用户资料失败: ${error.message}`);
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`更新用户资料时发生错误: ${error.message}`);
+      }
+      throw new Error('更新用户资料时发生未知错误');
     }
-    if(data){
-        return data[0];
-    }
-    return null;   // 返回更新后的用户资料
   },
   /**
    * 根据用户名删除用户资料。
