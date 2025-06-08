@@ -1,5 +1,6 @@
 import { createClient } from '@/config/client';
 import { UserProfile } from '@/types/userProfile';
+import { v4 as uuidv4 } from 'uuid';
 /**
  * UserProfileService - 处理用户资料相关操作的服务。
  */
@@ -39,9 +40,12 @@ export const UserProfileService = {
         throw new Error('该用户名已被使用');
       }
 
+      // 生成 UUID 作为 user_id
+      const user_id = uuidv4();
+
       const { data, error } = await supabase
         .from('user_profiles')
-        .insert([userProfile])
+        .insert([{ ...userProfile, user_id }])
         .select()
         .single();
 
@@ -133,15 +137,24 @@ export const UserProfileService = {
    * @throws {Error} 如果获取用户资料时发生错误，则抛出错误。
    */
   async fetchProfileByUsername(username: string): Promise<UserProfile | null> {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('username', username)
-      .single();
-    if (error) {
-      throw new Error(`获取资料时发生错误: ${error.message}`);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('username', username)
+        .maybeSingle();
+
+      if (error) {
+        throw new Error(`获取资料时发生错误: ${error.message}`);
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`获取资料时发生错误: ${error.message}`);
+      }
+      throw new Error('获取资料时发生未知错误');
     }
-    return data;
   }
 };
