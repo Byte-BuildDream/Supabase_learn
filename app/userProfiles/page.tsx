@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { UserProfileService } from '@/lib/userProfile';
 import { UserProfile } from '@/types/userProfile';
+
 export default function UserProfilesPage() {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [username, setUsername] = useState('');
@@ -10,6 +11,7 @@ export default function UserProfilesPage() {
   const [fetchedProfile, setFetchedProfile] = useState<UserProfile | null>(null);
   const [updateUsername, setUpdateUsername] = useState('');
   const [updateBio, setUpdateBio] = useState('');
+
   // 加载所有用户资料
   const loadProfiles = async () => {
     try {
@@ -23,6 +25,7 @@ export default function UserProfilesPage() {
   useEffect(() => {
     loadProfiles();
   }, []);
+
   // 创建用户资料
   const createProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +42,7 @@ export default function UserProfilesPage() {
       alert('Create error: ' + error);
     }
   };
+
   // 获取单个用户资料
   const fetchProfile = async () => {
     if (!fetchUsername) return alert('Please enter username');
@@ -51,6 +55,7 @@ export default function UserProfilesPage() {
       setFetchedProfile(null);
     }
   };
+
   // 更新用户资料
   const updateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +72,7 @@ export default function UserProfilesPage() {
       alert('Update error: ' + error);
     }
   };
+
   // 删除用户资料
   const deleteProfile = async (username: string) => {
     if (!window.confirm(`Are you sure you want to delete the profile for ${username}?`)) return;
@@ -79,72 +85,129 @@ export default function UserProfilesPage() {
       alert('Delete error: ' + error);
     }
   };
+
   return (
-    <div style={{ maxWidth: 600, margin: 'auto', padding: 20 }}>
-      <h1>User Profiles CRUD</h1>
-      {/* 创建表单 */}
-      <section>
-        <h2>Create Profile</h2>
-        <form onSubmit={createProfile}>
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          <input placeholder="Bio" value={bio} onChange={(e) => setBio(e.target.value)} />
-          <button type="submit">Create</button>
-        </form>
-      </section>
-      {/* 获取单个用户资料 */}
-      <section style={{ marginTop: 20 }}>
-        <h2>Fetch Profile</h2>
-        <input
-          type="text"
-          placeholder="Username"
-          value={fetchUsername}
-          onChange={(e) => setFetchUsername(e.target.value)}
-        />
-        <button onClick={fetchProfile}>Fetch</button>
-        {fetchedProfile && (
-          <pre style={{ background: '#eee', padding: 10, marginTop: 10 }}>
-            {JSON.stringify(fetchedProfile, null, 2)}
-          </pre>
-        )}
-      </section>
-      {/* 更新表单 */}
-      <section style={{ marginTop: 20 }}>
-        <h2>Update Profile</h2>
-        <form onSubmit={updateProfile}>
-          <input
-            type="text"
-            placeholder="Username (to update)"
-            value={updateUsername}
-            onChange={(e) => setUpdateUsername(e.target.value)}
-            required
-          />
-          <input
-            placeholder="New Bio"
-            value={updateBio}
-            onChange={(e) => setUpdateBio(e.target.value)}
-          />
-          <button type="submit">Update</button>
-        </form>
-      </section>
-      {/* 用户资料列表（可删除） */}
-      <section style={{ marginTop: 20 }}>
-        <h2>All User Profiles</h2>
-        {profiles.length === 0 && <p>No profiles found.</p>}
-        <ul>
-          {profiles.map((p) => (
-            <li key={p.user_id}>
-              <strong>{p.username}</strong> - {p.bio} {' '}
-              <button onClick={() => deleteProfile(p.username)}>Delete</button>
-            </li>
-          ))}
-        </ul>
-      </section>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">用户资料管理</h1>
+        
+        {/* 创建表单 */}
+        <section className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">创建新用户</h2>
+          <form onSubmit={createProfile} className="space-y-4">
+            <div>
+              <input
+                type="text"
+                placeholder="用户名"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <input
+                placeholder="个人简介"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              创建
+            </button>
+          </form>
+        </section>
+
+        {/* 获取单个用户资料 */}
+        <section className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">查询用户资料</h2>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="输入用户名"
+              value={fetchUsername}
+              onChange={(e) => setFetchUsername(e.target.value)}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+              onClick={fetchProfile}
+              className="bg-green-600 text-white py-2 px-6 rounded-md hover:bg-green-700 transition-colors"
+            >
+              查询
+            </button>
+          </div>
+          {fetchedProfile && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-md">
+              <pre className="text-sm text-gray-700">
+                {JSON.stringify(fetchedProfile, null, 2)}
+              </pre>
+            </div>
+          )}
+        </section>
+
+        {/* 更新表单 */}
+        <section className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">更新用户资料</h2>
+          <form onSubmit={updateProfile} className="space-y-4">
+            <div>
+              <input
+                type="text"
+                placeholder="要更新的用户名"
+                value={updateUsername}
+                onChange={(e) => setUpdateUsername(e.target.value)}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <input
+                placeholder="新的个人简介"
+                value={updateBio}
+                onChange={(e) => setUpdateBio(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-yellow-600 text-white py-2 px-4 rounded-md hover:bg-yellow-700 transition-colors"
+            >
+              更新
+            </button>
+          </form>
+        </section>
+
+        {/* 用户资料列表 */}
+        <section className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">所有用户资料</h2>
+          {profiles.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">暂无用户资料</p>
+          ) : (
+            <div className="space-y-4">
+              {profiles.map((p) => (
+                <div
+                  key={p.user_id}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                >
+                  <div>
+                    <h3 className="font-medium text-gray-900">{p.username}</h3>
+                    <p className="text-gray-600">{p.bio}</p>
+                  </div>
+                  <button
+                    onClick={() => deleteProfile(p.username)}
+                    className="bg-red-600 text-white py-1 px-3 rounded-md hover:bg-red-700 transition-colors text-sm"
+                  >
+                    删除
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
